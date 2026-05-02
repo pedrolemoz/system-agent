@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod *)",
+      "PowerShell(Get-ChildItem -Recurse C:\\\\Code\\\\system-agent | Where-Object { -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName)",
+      "PowerShell(go version)",
+      "PowerShell(powershell -NoProfile -NonInteractive -File \"C:\\\\Code\\\\system-agent\\\\test_gpu.ps1\")"
+    ]
+  }
+}
