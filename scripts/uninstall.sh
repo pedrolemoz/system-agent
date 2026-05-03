@@ -1,5 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
 set -e
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Please run this script as root (e.g. sudo bash uninstall.sh)"
+  exit 1
+fi
 
 INSTALL_DIR="/opt/system-agent"
 SVC_FILE="/etc/systemd/system/system-agent.service"
@@ -17,6 +22,9 @@ fi
 rm -f "$SVC_FILE"
 systemctl daemon-reload
 
-rm -rf "$INSTALL_DIR"
+if [ -d "$INSTALL_DIR" ]; then
+  echo "Removing $INSTALL_DIR..."
+  rm -rf "$INSTALL_DIR"
+fi
 
 echo "Done. system-agent removed."
