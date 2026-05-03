@@ -7,8 +7,8 @@ $taskName   = "SystemAgent"
 Write-Host "Uninstalling SystemAgent..." -ForegroundColor Cyan
 
 Write-Host "Stopping and removing scheduled task..." -ForegroundColor Cyan
-schtasks /end    /tn $taskName 2>$null
-schtasks /delete /tn $taskName /f 2>$null
+Stop-ScheduledTask        -TaskName $taskName -ErrorAction SilentlyContinue
+Unregister-ScheduledTask  -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
 
 if (Test-Path $installDir) {
     Write-Host "Removing $installDir..." -ForegroundColor Cyan

@@ -20,8 +20,7 @@ $exePath    = "$installDir\system-agent.exe"
 
 if (Test-Path $installDir) {
     Write-Host "Removing existing installation at $installDir..." -ForegroundColor Yellow
-    schtasks /end    /tn $taskName 2>$null
-    schtasks /delete /tn $taskName /f 2>$null
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
     Remove-Item -Path $installDir -Recurse -Force
 }
@@ -41,13 +40,14 @@ try {
 }
 
 Write-Host "Creating scheduled task..." -ForegroundColor Cyan
-$cmd = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"cd '$installDir'; & '$exePath'`""
-schtasks /create /tn $taskName /tr $cmd /sc onstart /ru SYSTEM /f
-if ($LASTEXITCODE -ne 0) { throw "schtasks create failed" }
+$action    = New-ScheduledTaskAction -Execute $exePath -WorkingDirectory $installDir
+$trigger   = New-ScheduledTaskTrigger -AtStartup
+$settings  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Seconds 5)
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
 
 Write-Host "Starting task..." -ForegroundColor Cyan
-schtasks /run /tn $taskName
-if ($LASTEXITCODE -ne 0) { throw "schtasks run failed" }
+Start-ScheduledTask -TaskName $taskName
 
 Write-Host ""
 Write-Host "Installation complete! system-agent will run automatically on startup." -ForegroundColor Green
