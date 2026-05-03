@@ -6,7 +6,8 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-INSTALL_DIR="/opt/system-agent"
+REAL_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+INSTALL_DIR="$REAL_HOME/system-agent"
 SVC_FILE="/etc/systemd/system/system-agent.service"
 
 echo "Uninstalling system-agent..."

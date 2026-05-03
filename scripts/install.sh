@@ -7,7 +7,7 @@ export PATH="$PATH:/usr/local/go/bin:/usr/local/bin:/usr/bin"
 [ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "Please run this script as root (e.g. sudo bash install.sh)"
+  echo "Please run this script as root (e.g. sudo -E bash install.sh)"
   exit 1
 fi
 
@@ -23,7 +23,8 @@ if [ -n "$MISSING" ]; then
   exit 1
 fi
 
-INSTALL_DIR="/opt/system-agent"
+REAL_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+INSTALL_DIR="$REAL_HOME/system-agent"
 SVC_FILE="/etc/systemd/system/system-agent.service"
 
 if [ -d "$INSTALL_DIR" ]; then
@@ -40,6 +41,9 @@ cd "$INSTALL_DIR"
 go mod tidy
 go build -trimpath -ldflags="-s -w" -o system-agent ./cmd/agent
 
+echo "Fixing ownership..."
+chown -R "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$INSTALL_DIR"
+
 echo "Creating systemd service..."
 cat > "$SVC_FILE" <<EOF
 [Unit]
@@ -48,6 +52,7 @@ After=network.target
 
 [Service]
 Type=simple
+User=${SUDO_USER:-$USER}
 ExecStart=$INSTALL_DIR/system-agent
 WorkingDirectory=$INSTALL_DIR
 Restart=on-failure
