@@ -15,16 +15,14 @@ if ($missing.Count -gt 0) {
 }
 
 $installDir = "C:\Program Files\SystemAgent"
-$svcName    = "SystemAgent"
+$taskName   = "SystemAgent"
 $exePath    = "$installDir\system-agent.exe"
 
 if (Test-Path $installDir) {
     Write-Host "Removing existing installation at $installDir..." -ForegroundColor Yellow
-    if (Get-Service -Name $svcName -ErrorAction SilentlyContinue) {
-        Stop-Service -Name $svcName -Force
-        sc.exe delete $svcName | Out-Null
-        Start-Sleep -Seconds 2
-    }
+    schtasks /end    /tn $taskName 2>$null
+    schtasks /delete /tn $taskName /f 2>$null
+    Start-Sleep -Seconds 2
     Remove-Item -Path $installDir -Recurse -Force
 }
 
@@ -42,15 +40,14 @@ try {
     Pop-Location
 }
 
-Write-Host "Registering service..." -ForegroundColor Cyan
-New-Service -Name $svcName `
-            -BinaryPathName "`"$exePath`"" `
-            -DisplayName "System Agent" `
-            -Description "System metrics and control HTTP service" `
-            -StartupType Automatic
+Write-Host "Creating scheduled task..." -ForegroundColor Cyan
+$cmd = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"cd '$installDir'; & '$exePath'`""
+schtasks /create /tn $taskName /tr $cmd /sc onstart /ru SYSTEM /f
+if ($LASTEXITCODE -ne 0) { throw "schtasks create failed" }
 
-Write-Host "Starting service..." -ForegroundColor Cyan
-Start-Service -Name $svcName
+Write-Host "Starting task..." -ForegroundColor Cyan
+schtasks /run /tn $taskName
+if ($LASTEXITCODE -ne 0) { throw "schtasks run failed" }
 
 Write-Host ""
 Write-Host "Installation complete! system-agent will run automatically on startup." -ForegroundColor Green

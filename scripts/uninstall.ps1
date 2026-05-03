@@ -2,16 +2,13 @@
 $ErrorActionPreference = "Continue"
 
 $installDir = "C:\Program Files\SystemAgent"
-$svcName    = "SystemAgent"
+$taskName   = "SystemAgent"
 
 Write-Host "Uninstalling SystemAgent..." -ForegroundColor Cyan
 
-if (Get-Service -Name $svcName -ErrorAction SilentlyContinue) {
-    Write-Host "Stopping and removing service..." -ForegroundColor Cyan
-    Stop-Service -Name $svcName -Force
-    sc.exe delete $svcName | Out-Null
-    Start-Sleep -Seconds 2
-}
+Write-Host "Stopping and removing scheduled task..." -ForegroundColor Cyan
+schtasks /end    /tn $taskName 2>$null
+schtasks /delete /tn $taskName /f 2>$null
 
 if (Test-Path $installDir) {
     Write-Host "Removing $installDir..." -ForegroundColor Cyan
