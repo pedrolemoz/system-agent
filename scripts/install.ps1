@@ -14,12 +14,13 @@ if ($missing.Count -gt 0) {
     Exit 1
 }
 
-$installDir = "C:\Program Files\SystemAgent"
+$installDir = "C:\SystemAgent"
 $taskName   = "SystemAgent"
 $exePath    = "$installDir\system-agent.exe"
 
 if (Test-Path $installDir) {
     Write-Host "Removing existing installation at $installDir..." -ForegroundColor Yellow
+    Stop-ScheduledTask       -TaskName $taskName -ErrorAction SilentlyContinue
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
     Remove-Item -Path $installDir -Recurse -Force
@@ -27,6 +28,7 @@ if (Test-Path $installDir) {
 
 Write-Host "Cloning project to $installDir..." -ForegroundColor Cyan
 git clone https://github.com/pedrolemoz/system-agent.git $installDir
+if ($LASTEXITCODE -ne 0) { throw "git clone failed" }
 
 Write-Host "Building..." -ForegroundColor Cyan
 Push-Location $installDir
@@ -42,12 +44,24 @@ try {
 Write-Host "Creating scheduled task..." -ForegroundColor Cyan
 $action    = New-ScheduledTaskAction -Execute $exePath -WorkingDirectory $installDir
 $trigger   = New-ScheduledTaskTrigger -AtStartup
-$settings  = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Seconds 5)
+$settings  = New-ScheduledTaskSettingsSet `
+                -ExecutionTimeLimit 0 `
+                -RestartCount 3 `
+                -RestartInterval (New-TimeSpan -Minutes 1) `
+                -StartWhenAvailable `
+                -MultipleInstances IgnoreNew
 $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
 
-Write-Host "Starting task..." -ForegroundColor Cyan
+Write-Host "Adding firewall rule..." -ForegroundColor Cyan
+New-NetFirewallRule -DisplayName "SystemAgent" -Direction Inbound -Protocol TCP -LocalPort 8732 -Action Allow -ErrorAction SilentlyContinue | Out-Null
+
+Write-Host "Starting task now..." -ForegroundColor Cyan
 Start-ScheduledTask -TaskName $taskName
+
+Start-Sleep -Seconds 3
+$state = (Get-ScheduledTask -TaskName $taskName).State
+Write-Host "Task state: $state" -ForegroundColor Cyan
 
 Write-Host ""
 Write-Host "Installation complete! system-agent will run automatically on startup." -ForegroundColor Green
