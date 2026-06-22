@@ -62,9 +62,9 @@ The build uses `CGO_ENABLED=0`, so no cross compiler is required. Publish these 
 
 | Artifact | Public URL | Target |
 | --- | --- | --- |
-| `dist/systemagent.exe` | `/windows` | Windows amd64 |
-| `dist/systemagent-linux` | `/linux` | Linux amd64 |
-| `dist/systemagent-mac` | `/mac` | macOS arm64 |
+| `dist/systemagent.exe` | `/systemagent.exe` | Windows amd64 |
+| `dist/systemagent-linux` | `/systemagent-linux` | Linux amd64 |
+| `dist/systemagent-mac` | `/systemagent-mac` | macOS arm64 |
 
 The script also emits Windows arm64, Linux arm64, and macOS amd64 artifacts plus `SHA256SUMS`. If an installed fleet needs both architectures per OS, route the OS URL using request metadata or publish architecture-specific URLs and adjust the installer. Code signing/notarization is an infrastructure/release concern, especially on Windows and macOS.
 

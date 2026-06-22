@@ -15,7 +15,7 @@ build() {
   CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath -ldflags "$ldflags" -o "dist/$output" ./cmd/systemagent
 }
 
-# These three names correspond to the public /windows, /linux, and /mac URLs.
+# These three names correspond directly to the public artifact URLs.
 build windows amd64 systemagent.exe
 build linux amd64 systemagent-linux
 build darwin arm64 systemagent-mac
