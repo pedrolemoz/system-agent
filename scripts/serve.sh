@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env sh
+set -eu
 
 repo_root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
 public="$repo_root/public"
@@ -23,4 +23,14 @@ cp \
   "$public/"
 
 cd "$public"
-exec python -m http.server 2767
+
+if command -v python3 >/dev/null 2>&1; then
+  python=python3
+elif command -v python >/dev/null 2>&1; then
+  python=python
+else
+  echo 'Python 3 is required to serve the public directory.' >&2
+  exit 1
+fi
+
+exec "$python" -m http.server 2767
