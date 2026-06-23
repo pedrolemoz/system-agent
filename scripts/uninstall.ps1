@@ -6,6 +6,18 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
     throw 'SystemAgent must be uninstalled from an elevated PowerShell session.'
 }
 
+$firewallRuleName = 'SystemAgent TCP 8732'
+
+function Remove-SystemAgentFirewallRule {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        netsh.exe advfirewall firewall delete rule name="$firewallRuleName" | Out-Null
+    } finally {
+        $script:ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
 $existingTask = Get-ScheduledTask -TaskName SystemAgent -ErrorAction SilentlyContinue
 if ($existingTask) {
     Stop-ScheduledTask -TaskName SystemAgent -ErrorAction SilentlyContinue
@@ -19,8 +31,7 @@ if ($existingTask) {
     Unregister-ScheduledTask -TaskName SystemAgent -Confirm:$false
 }
 
-Get-NetFirewallRule -DisplayName 'SystemAgent TCP 8732' -ErrorAction SilentlyContinue |
-    Remove-NetFirewallRule -ErrorAction SilentlyContinue
+Remove-SystemAgentFirewallRule
 
 $installDir = Join-Path $env:ProgramFiles 'SystemAgent'
 if (Test-Path -LiteralPath $installDir) {
