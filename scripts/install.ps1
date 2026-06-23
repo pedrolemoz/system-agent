@@ -13,8 +13,11 @@ $temporary = Join-Path $env:TEMP 'systemagent.exe.download'
 New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 Invoke-WebRequest -UseBasicParsing -Uri 'https://systemagent.pedrolemoz.dev/systemagent.exe' -OutFile $temporary
 
-schtasks.exe /End /TN SystemAgent 2>$null | Out-Null
-schtasks.exe /Delete /TN SystemAgent /F 2>$null | Out-Null
+$existingTask = Get-ScheduledTask -TaskName SystemAgent -ErrorAction SilentlyContinue
+if ($existingTask) {
+    Stop-ScheduledTask -TaskName SystemAgent -ErrorAction SilentlyContinue
+    Unregister-ScheduledTask -TaskName SystemAgent -Confirm:$false
+}
 Move-Item -Force $temporary $binary
 
 $escapedBinary = [Security.SecurityElement]::Escape($binary)
