@@ -52,9 +52,9 @@ try {
     Remove-Item -Force -ErrorAction SilentlyContinue $taskFile
 }
 
-if (-not (Get-NetFirewallRule -DisplayName 'SystemAgent TCP 8732' -ErrorAction SilentlyContinue)) {
-    New-NetFirewallRule -DisplayName 'SystemAgent TCP 8732' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8732 -Profile Private | Out-Null
-}
+Get-NetFirewallRule -DisplayName 'SystemAgent TCP 8732' -ErrorAction SilentlyContinue |
+    Remove-NetFirewallRule -ErrorAction SilentlyContinue
+New-NetFirewallRule -DisplayName 'SystemAgent TCP 8732' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8732 -Profile Private | Out-Null
 
 schtasks.exe /Run /TN SystemAgent | Out-Null
 Write-Host 'SystemAgent installed and running on TCP port 8732.'
