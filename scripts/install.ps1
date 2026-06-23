@@ -9,21 +9,25 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 $installDir = Join-Path $env:ProgramFiles 'SystemAgent'
 $binary = Join-Path $installDir 'systemagent.exe'
 $temporary = Join-Path $env:TEMP 'systemagent.exe.download'
-$firewallRuleName = 'SystemAgent TCP 8732'
+$firewallRuleNames = @('SystemAgent TCP 8732', 'SystemAgent UDP 8732')
 
 function Remove-SystemAgentFirewallRule {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        netsh.exe advfirewall firewall delete rule name="$firewallRuleName" | Out-Null
+        foreach ($firewallRuleName in $firewallRuleNames) {
+            netsh.exe advfirewall firewall delete rule name="$firewallRuleName" | Out-Null
+        }
     } finally {
         $script:ErrorActionPreference = $previousErrorActionPreference
     }
 }
 
 function Add-SystemAgentFirewallRule {
-    netsh.exe advfirewall firewall add rule name="$firewallRuleName" dir=in action=allow program="$binary" protocol=TCP localport=8732 profile=private | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Failed to create the $firewallRuleName firewall rule." }
+    netsh.exe advfirewall firewall add rule name="SystemAgent TCP 8732" dir=in action=allow program="$binary" protocol=TCP localport=8732 profile=any | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to create the SystemAgent TCP 8732 firewall rule.' }
+    netsh.exe advfirewall firewall add rule name="SystemAgent UDP 8732" dir=in action=allow program="$binary" protocol=UDP localport=8732 profile=any | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to create the SystemAgent UDP 8732 firewall rule.' }
 }
 
 New-Item -ItemType Directory -Force -Path $installDir | Out-Null

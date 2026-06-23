@@ -6,13 +6,15 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
     throw 'SystemAgent must be uninstalled from an elevated PowerShell session.'
 }
 
-$firewallRuleName = 'SystemAgent TCP 8732'
+$firewallRuleNames = @('SystemAgent TCP 8732', 'SystemAgent UDP 8732')
 
 function Remove-SystemAgentFirewallRule {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        netsh.exe advfirewall firewall delete rule name="$firewallRuleName" | Out-Null
+        foreach ($firewallRuleName in $firewallRuleNames) {
+            netsh.exe advfirewall firewall delete rule name="$firewallRuleName" | Out-Null
+        }
     } finally {
         $script:ErrorActionPreference = $previousErrorActionPreference
     }
