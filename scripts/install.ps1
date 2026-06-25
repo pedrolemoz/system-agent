@@ -31,7 +31,7 @@ function Add-SystemAgentFirewallRule {
 }
 
 New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-Invoke-WebRequest -UseBasicParsing -Uri 'https://systemagent.pedrolemoz.dev/systemagent.exe' -OutFile $temporary
+Invoke-WebRequest -UseBasicParsing -Uri 'https://filehub.pedrolemoz.dev/systemagent.exe' -OutFile $temporary
 
 $existingTask = Get-ScheduledTask -TaskName SystemAgent -ErrorAction SilentlyContinue
 if ($existingTask) {

@@ -7,8 +7,8 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 case "$(uname -s)" in
-  Linux) download_url='https://systemagent.pedrolemoz.dev/systemagent-linux' ;;
-  Darwin) download_url='https://systemagent.pedrolemoz.dev/systemagent-mac' ;;
+  Linux) download_url='https://filehub.pedrolemoz.dev/systemagent-linux' ;;
+  Darwin) download_url='https://filehub.pedrolemoz.dev/systemagent-mac' ;;
   *) echo "Unsupported operating system: $(uname -s)" >&2; exit 1 ;;
 esac
 

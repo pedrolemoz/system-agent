@@ -14,13 +14,13 @@ The shutdown endpoint intentionally matches ClusterHub's unauthenticated contrac
 Run as Administrator on Windows:
 
 ```powershell
-irm https://systemagent.pedrolemoz.dev/install | iex
+irm https://filehub.pedrolemoz.dev/install.ps1 | iex
 ```
 
 Run as root on Linux or macOS:
 
 ```sh
-curl -fsSL https://systemagent.pedrolemoz.dev/install | sudo sh
+curl -fsSL https://filehub.pedrolemoz.dev/install.sh | sudo sh
 ```
 
 The infrastructure should serve [`scripts/install.ps1`](scripts/install.ps1) to Windows and [`scripts/install.sh`](scripts/install.sh) to Linux/macOS. The installers may be run again to update an existing installation.
@@ -62,9 +62,9 @@ The build uses `CGO_ENABLED=0`, so no cross compiler is required. Publish these 
 
 | Artifact | Public URL | Target |
 | --- | --- | --- |
-| `dist/systemagent.exe` | `/systemagent.exe` | Windows amd64 |
-| `dist/systemagent-linux` | `/systemagent-linux` | Linux amd64 |
-| `dist/systemagent-mac` | `/systemagent-mac` | macOS arm64 |
+| `dist/systemagent.exe` | `https://filehub.pedrolemoz.dev/systemagent.exe` | Windows amd64 |
+| `dist/systemagent-linux` | `https://filehub.pedrolemoz.dev/systemagent-linux` | Linux amd64 |
+| `dist/systemagent-mac` | `https://filehub.pedrolemoz.dev/systemagent-mac` | macOS arm64 |
 
 The script also emits Windows arm64, Linux arm64, and macOS amd64 artifacts plus `SHA256SUMS`. If an installed fleet needs both architectures per OS, route the OS URL using request metadata or publish architecture-specific URLs and adjust the installer. Code signing/notarization is an infrastructure/release concern, especially on Windows and macOS.
 

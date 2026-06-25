@@ -2,35 +2,26 @@
 set -eu
 
 repo_root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+dist="$repo_root/dist"
 public="$repo_root/public"
 
-if [ -z "$repo_root" ] || [ "$public" != "$repo_root/public" ]; then
+if [ -z "$repo_root" ] || [ "$dist" != "$repo_root/dist" ] || [ "$public" != "$repo_root/public" ]; then
   echo 'Refusing to replace an unexpected path.' >&2
   exit 1
 fi
 
+rm -rf "$dist"
 rm -rf "$public"
 mkdir -p "$public"
 
+bash "$repo_root/scripts/build.sh"
+
 cp \
-  "$repo_root/dist/systemagent.exe" \
-  "$repo_root/dist/systemagent-linux" \
-  "$repo_root/dist/systemagent-mac" \
+  "$dist/systemagent.exe" \
+  "$dist/systemagent-linux" \
+  "$dist/systemagent-mac" \
   "$repo_root/scripts/install.ps1" \
   "$repo_root/scripts/install.sh" \
-  "$repo_root/scripts/uninstall.ps1" \
-  "$repo_root/scripts/uninstall.sh" \
   "$public/"
 
-cd "$public"
-
-if command -v python3 >/dev/null 2>&1; then
-  python=python3
-elif command -v python >/dev/null 2>&1; then
-  python=python
-else
-  echo 'Python 3 is required to serve the public directory.' >&2
-  exit 1
-fi
-
-exec "$python" -m http.server 2767
+echo "Copied hosted artifacts to $public."
